@@ -122,5 +122,55 @@ func main() {
 
 	})
 
+	r.PUT("/user/:id", func(ctx *gin.Context){ 
+        id := ctx.Param("id")
+
+		userID, err := strconv.Atoi(id)
+	    fmt.Println("usernya", userID)
+		if err != nil {
+			ctx.JSON(400, gin.H{
+				"error": "Invalid user ID",
+			})
+			return
+		}
+
+		user, exists := users[userID]
+		if !exists {
+			ctx.JSON(404, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+
+		var updateData User
+		if err := ctx.ShouldBindJSON(&updateData); err != nil {
+			ctx.JSON(400, gin.H{
+				"error": "Invalid request body",
+			})
+			return
+		}
+
+		name := strings.TrimSpace(updateData.Name)
+		email := strings.ToLower(strings.TrimSpace(updateData.Email))
+		password := strings.TrimSpace(updateData.Password)
+
+		fmt.Println("name", name)
+		fmt.Println("email", email)
+		fmt.Println("password", password)
+
+		user.Name = name
+		user.Email = email
+		user.Password = password
+
+		users[userID] = user
+
+		ctx.JSON(200, gin.H{
+			"message": "berhasil mengupdate user",
+			"data":    user,
+		})
+	})
+
+
+
 	r.Run("localhost:8888")
 }
