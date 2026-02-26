@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"fmt"
+	"strings"
 )
 
 type User struct {
@@ -70,23 +72,55 @@ func main() {
 
 	})
 
-	// r.POST("/users", func(ctx *gin.Context) {
-	// 	data := users{}
-	// 	err := ctx.ShouldBindJSON(&data)
+	r.POST("/users", func(ctx *gin.Context) {
+		var newUser User
+		fmt.Println("newUser", newUser)
 
-	// 	if err != nil {
-	// 		ctx.JSON(400, Response{
-	// 			Success: false,
-	// 			Message: "Gagal membuat user",
-	// 		})
-	// 	} else {
-	// 		ListUsers = append(ListUsers, data)
-	// 		ctx.JSON(200, Response{
-	// 			Success: true,
-	// 			Message: "berhasil membuat user",
-	// 		})
-	// 	}
-	// })
+		err := ctx.ShouldBindJSON(&newUser)
+
+		if err != nil {
+			ctx.JSON(400, gin.H{
+				"Success": false,
+				"Message": "Gagal membuat user",
+			})
+			return
+		} 
+
+		name := strings.TrimSpace(newUser.Name)
+		email := strings.ToLower(strings.TrimSpace(newUser.Email))
+		password := strings.TrimSpace(newUser.Password)
+
+        if name == "" || email == "" || password == "" {
+            ctx.JSON(400, gin.H{
+				"success": false,
+				"message": "Nama, email, dan password tidak boleh kosong",
+				"error":   "validation_error",
+			})
+			return
+		}
+
+		for _ , existingUser := range users {
+                if existingUser.Email == email {
+				ctx.JSON(409, gin.H{ 
+					"success": false,
+					"message": "Email sudah terdaftar",
+					"error":   "duplicate_email",
+				})
+				return
+			}
+		}
+
+		newUser.ID = nextID
+		nextID++
+		users[newUser.ID]= newUser
+
+		ctx.JSON(201, gin.H{ 
+			"success": true,
+			"message": "Berhasil membuat user",
+			"data":    newUser, 
+		})
+
+	})
 
 	r.Run("localhost:8888")
 }
