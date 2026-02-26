@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	// "strconv"
+	"strconv"
 )
 
 type User struct {
@@ -47,12 +47,28 @@ func main() {
 		})
 	})
 
-	// r.GET("/user/:id", func(ctx *gin.Context) {
-	// 	id := ctx.Param("id")
-	// 	userId, err := strconv.Atoi(id)
+	r.GET("/user/:id", func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		userId, err := strconv.Atoi(id)
+		if err != nil {
+			ctx.JSON(400, gin.H{
+				"error": "Invalid user ID",
+			})
+			return
+		}
+
+		user , exists := users[userId]
+		if !exists {
+          ctx.JSON(400, gin.H{
+			"error" : "tidak dapat menemukan user",
+		  })
+		  return
+		}
 
 		
-	// })
+	    ctx.JSON(200, user)
+
+	})
 
 	// r.POST("/users", func(ctx *gin.Context) {
 	// 	data := users{}
