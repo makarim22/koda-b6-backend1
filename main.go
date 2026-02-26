@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"regexp"
+	"golang.org/x/crypto/bcrypt" 
 )
 
 type User struct {
@@ -176,7 +177,15 @@ func main() {
 
 		name := strings.TrimSpace(updateData.Name)
 		email := strings.ToLower(strings.TrimSpace(updateData.Email))
-		password := strings.TrimSpace(updateData.Password)
+
+		HashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateData.Password), bcrypt.DefaultCost)
+
+		if err != nil {
+			return
+		}
+		
+		password := string(HashedPassword)
+
 
 		fmt.Println("name", name)
 		fmt.Println("email", email)
@@ -234,6 +243,13 @@ func main() {
 			return
 		}
 
+		HashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
+
+		if err != nil {
+			return
+		}
+		newUser.Password = string(HashedPassword)
+
 		newUser.ID = nextID
 		nextID++
 		users[newUser.ID] = newUser
@@ -272,14 +288,14 @@ func main() {
 		user := users[userID]
 		fmt.Println("user", user)
 
-		if user.Password != payload.Password {
+		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
+		if err != nil {
 			ctx.JSON(403, gin.H{
 				"success": false, 
-				"message": "Email atau password salah",
+				"message": "Email atau password salah", 
 				"error": "invalid_credentials"})
 			return
 		}
-
 		responseUser := user
 		responseUser.Password = ""
 		ctx.JSON(200, gin.H{

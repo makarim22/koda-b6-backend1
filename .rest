@@ -2,13 +2,13 @@
 # content-type: application/json
 
 # {
-#     "name": "reza",
-#     "email": "rezabukan@gmail.com",
-#     "password": "1234",
-#     "phone": "081529939013",
+#     "name": "hilal",
+#     "email": "hilal@gmail.com",
+#     "password": "password",
+#     "phone": "081529939394",
 #     "gender": "Laki-laki",
-#     "address": "Jl. Paus",
-#     "age": 22
+#     "address": "Jl. Aceh",
+#     "age": 27
 # }
 
 
@@ -16,6 +16,14 @@ POST http://localhost:8888/login HTTP/1.1
 content-type: application/json
 
 {
-    "email": "rezabukan@gmail.com",
-    "password": "1234"
+    "email": "hilal@gmail.com",
+    "password": "password"
 }
+
+
+# PUT http://localhost:8888/user/3 HTTP/1.1
+# content-type : application/json
+
+# {
+#     "password": "1234"
+# }
