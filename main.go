@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"fmt"
 	"strings"
+	"regexp"
 )
 
 type User struct {
@@ -12,7 +13,26 @@ type User struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password,omitempty"`
+	Phone string
+	Gender string
+	Age int
+	Address string
 }
+
+type LoginPayload struct {
+	Email string
+	Password string
+}
+
+// type RegisterPayload struct {
+// 	Fullname string
+// 	Email string
+// 	Password string
+// 	Phone string
+// 	Gender string
+// 	Age int
+// 	Address string
+// }
 
 var users = map[int]User{
 	1: {ID: 1, Name: "Budi", Email: "budi@email.com", Password: "hashed123"},
@@ -20,6 +40,10 @@ var users = map[int]User{
 }
 
 var nextID = 3
+
+var userEmails = map[string]int{}
+
+var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 
 
 func main() {
@@ -168,6 +192,100 @@ func main() {
 			"message": "berhasil mengupdate user",
 			"data":    user,
 		})
+	})
+
+	/// endpoint auth 
+
+	r.POST("/register", func(ctx *gin.Context) {
+		var newUser User
+
+		if err := ctx.ShouldBindJSON(&newUser); err != nil {
+			ctx.JSON(400, gin.H{
+				"success": false, 
+				"message": "Invalid request body", 
+				"error": err.Error()})
+			return
+		}
+
+		Name := strings.TrimSpace(newUser.Name)
+		Email := strings.ToLower(strings.TrimSpace(newUser.Email))
+
+		if Name == "" || Email == "" || newUser.Password == "" {
+			ctx.JSON(400, gin.H{
+				"success": false,
+				"message": "Nama, email, dan password tidak boleh kosong",
+				"error": "validation_error"})
+			return
+		}
+
+		if !emailRegex.MatchString(Email) {
+			ctx.JSON(400, gin.H{
+				"success": false, 
+				"message": "Format email tidak valid", 
+				"error": "invalid_email_format"})
+			return
+		}
+
+		if _, emailExists := userEmails[newUser.Email]; emailExists {
+			ctx.JSON(400, gin.H{
+				"success": false,
+				 "message": "Email sudah terdaftar", 
+				 "error": "duplicate_email"})
+			return
+		}
+
+		newUser.ID = nextID
+		nextID++
+		users[newUser.ID] = newUser
+		userEmails[newUser.Email] = newUser.ID
+
+		responseUser := newUser
+		responseUser.Password = "" // hilangkan password
+		ctx.JSON(200, gin.H{
+			"success": true, 
+			"message": "Registrasi berhasil", 
+			"data": responseUser})
+	})
+
+	r.POST("/login", func(ctx *gin.Context) {
+		var payload LoginPayload
+
+		if err := ctx.ShouldBindJSON(&payload); err != nil {
+			ctx.JSON(400, gin.H{
+				"success": false, 
+				"message": "Invalid request body", 
+				"error": err.Error()})
+			return
+		}
+
+		Email := strings.ToLower(strings.TrimSpace(payload.Email))
+
+		userID, emailExists := userEmails[Email]
+		if !emailExists {
+			ctx.JSON(403, gin.H{
+				"success": false,
+				 "message": "Email atau password salah", 
+				 "error": "invalid_credentials"})
+			return
+		}
+
+		user := users[userID]
+		fmt.Println("user", user)
+
+		if user.Password != payload.Password {
+			ctx.JSON(403, gin.H{
+				"success": false, 
+				"message": "Email atau password salah",
+				"error": "invalid_credentials"})
+			return
+		}
+
+		responseUser := user
+		responseUser.Password = ""
+		ctx.JSON(200, gin.H{
+			"success": true, 
+			"message": "Login berhasil", 
+			"data": responseUser})
 	})
 
 
