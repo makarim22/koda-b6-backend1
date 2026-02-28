@@ -12,13 +12,13 @@
 # }
 
 
-POST http://localhost:8888/login HTTP/1.1
-content-type: application/json
+# POST http://localhost:8888/login HTTP/1.1
+# content-type: application/json
 
-{
-    "email": "hilal@gmail.com",
-    "password": "password"
-}
+# {
+#     "email": "hilal@gmail.com",
+#     "password": "password"
+# }
 
 
 # PUT http://localhost:8888/user/3 HTTP/1.1
@@ -27,3 +27,15 @@ content-type: application/json
 # {
 #     "password": "1234"
 # }
+
+POST http://localhost:8888/products HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Affogato",
+    "description": "Biji kopi pilihan",
+    "stock": 50,
+    "size_id" : 1,
+    "variant_id": 1
+   
+}

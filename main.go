@@ -20,6 +20,15 @@ type User struct {
 	Address string
 }
 
+type Product struct {
+	ID int
+	Name string
+	Description string
+	Stock int
+	VariantId int `json:"variant_id"`
+	SizeId int `json:"size_id"`
+}
+
 type LoginPayload struct {
 	Email string
 	Password string
@@ -40,11 +49,15 @@ var users = map[int]User{
 	2: {ID: 2, Name: "Siti", Email: "siti@email.com", Password: "hashed456"},
 }
 
+var products = map[int]Product{}
+
 var nextID = 3
 
 var userEmails = map[string]int{}
 
 var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+
+var nextProductId = 1
 
 
 func main() {
@@ -302,6 +315,29 @@ func main() {
 			"success": true, 
 			"message": "Login berhasil", 
 			"data": responseUser})
+	})
+
+	// endpoint product
+	r.POST("/products", func(ctx *gin.Context){
+        var newProduct Product
+
+		if err := ctx.ShouldBindJSON(&newProduct); err != nil {
+			ctx.JSON(400, gin.H{
+				"success": false, 
+				"message": "Invalid request body", 
+				"error": err.Error()})
+			return
+		}
+
+		fmt.Println("product", newProduct.SizeId)
+
+		products[nextProductId] = newProduct
+
+		fmt.Println("array product", products)
+
+
+
+
 	})
 
 
