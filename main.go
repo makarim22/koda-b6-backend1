@@ -318,26 +318,49 @@ func main() {
 	})
 
 	// endpoint product
-	r.POST("/products", func(ctx *gin.Context){
-        var newProduct Product
+	r.POST("/products", func(ctx *gin.Context) {
+		var newProduct Product
 
 		if err := ctx.ShouldBindJSON(&newProduct); err != nil {
 			ctx.JSON(400, gin.H{
-				"success": false, 
-				"message": "Invalid request body", 
-				"error": err.Error()})
+				"success": false,
+				"message": "Invalid request body",
+				"error":   err.Error()})
 			return
 		}
 
-		fmt.Println("product", newProduct.SizeId)
+		newProduct.ID = nextProductId
+		products[newProduct.ID] = newProduct 
 
-		products[nextProductId] = newProduct
+		nextProductId++ 
 
-		fmt.Println("array product", products)
+		fmt.Printf("Added product: %+v\n", newProduct)
+		fmt.Println("Current products map:", products) 
 
+		ctx.JSON(201, gin.H{ 
+			"success": true,
+			"message": "Product created successfully",
+			"data":    newProduct,
+		})
+	})
 
+	r.GET("/products", func(ctx *gin.Context) {
+		if len(products) == 0 {
+			ctx.JSON(404, gin.H{
+				"error": "No products found",
+			})
+			return
+		}
 
+		productList := make([]Product, 0, len(products))
+		for _, product := range products {
+			productList = append(productList, product)
+		}
 
+		ctx.JSON(200, gin.H{
+			"data":  productList,
+			"count": len(productList),
+		})
 	})
 
 
